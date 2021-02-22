@@ -22,7 +22,10 @@ ui <- fluidPage(
       column(12, # Column width out of 12. 
              fileInput("file", h3("Upload CSV file."  ),multiple = FALSE,
                        accept = c("text/csv",
-                                  "text/comma-separated-values,text/plain",".csv"))),
+                                  "text/comma-separated-values,text/plain",
+                                  ".csv")
+                       )
+            ),
       column(12, 
              helpText("The first columns in the file are the outputs, the next four columns the time of day dummy variables, the last columns the inputs. This application evaluates the effect of the inputs on the outputs. Currently only 4 time of day intervals are supported. For example, 06:00-12:00, 12:01-16:00, 16:01-20:00, 20:01-06:00. 
                       If a time interval column has 1 in it, this means the row's inputs and outputs occurred in this time interval. In each row, exactly one of the time columns should be 1, the others 0. See", a(href="https://docs.google.com/spreadsheets/d/14rU8q4YUpjsmfS1D6n0TdVGvX0-RzCzVyfZGOOnwo_c","the example"),
@@ -124,8 +127,7 @@ server <- function(input, output) {
     ycolumns <- input$ynum
     timecolstartp1 <- input$ynum +1 +1
     timecolend <- input$ynum +4
-    totalcolumns <- length(colnames(data))
-    xdf <- data[, xcolstart:xcolend,drop=F] 
+    xdf <- data[, xcolstart:xcolend,drop=F]
     ydf <- data[,1:ycolumns,drop=F] 
     #timedummies <- data[,(ycolumns+1):(ycolumns+4),drop=F]
     timedummiesdrop1 <- data[,timecolstartp1:timecolend,drop=F]
@@ -145,7 +147,6 @@ server <- function(input, output) {
     }
     # Run the regression. 
     fit <- VARX(y, 1, xt = xdf, m=4) 
-    rounding <- 2
     ncolumns <- 2*ycolumns
     # Arrange the regression results in a table and change the column names accordingly.
     fitvaljund <- cbind(fit[["coef"]], fit[["se.coef"]])
@@ -158,7 +159,7 @@ server <- function(input, output) {
     colnames(fitvaljund) <- clnms2
 # Change the row names of the regression results table to reflect the regression intercept, lagged dependent and independent variables (outputs and inputs). 
     rownames(fitvaljund)[1] <- "keskmine"
-    for (i in 1:length(colnames(y))){
+    for (i in seq_along(colnames(y))){
       rownames(fitvaljund)[1+i] <- paste0(rownames(fitvaljund)[1+i],"_t-1")
     }
     for (j in 1:lags){
