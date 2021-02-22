@@ -55,25 +55,45 @@ ui <- fluidPage(
       ),
     mainPanel(
       tabsetPanel(type="tabs", tabPanel("Viitajadridades",
-      h3("Kui palju sisendi suurenemine ühe ühiku võrra väljundit muudab."),
+      h3("Kui palju sisendi suurenemine ühe ühiku võrra väljundit muudab
+        # murdosana väljundi algsest väärtusest
+         ."),
 #        p("Väljundid", textOutput("valjundid"), 
 #        "Sisendid", textOutput("sisendid"),
 p(textOutput("kontroll")),
 p(""),
      p("Tabeli esimene rida näitab väljundi keskmist suurust ja selle standardhälvet. Edasised read näitavad sisendi mõju väljundile ja mõju standardhälvet. Kui mõju on suurem kui kahekordne st.hälve, siis on mõju statistiliselt oluline. Väljund eelmisel ajavahemikul (t-1) on ka sisend praeguse ajavahemiku (t) väljundile. 
-       Meetod: sesoonsus (kellaaja mõju) eemaldatakse väljunditest lineaarse regressiooniga. Seejärel tehakse väljundite peal 1. järku vektor-autoregressioon väliste muutujatega (VARX, tuntud ka kui jagatud viitaegadega autoregressioon ADL). Välised muutujad on CSV-st võetud sisendid. Uuritakse nii samaaegse välise muutuja mõju kui ka viitajaga mõjusid."),
+       Meetod: sesoonsus (kellaaja mõju) eemaldatakse väljunditest lineaarse regressiooniga. 
+#       Väljundist võetakse logaritm. 
+       Seejärel tehakse väljundite peal 1. järku vektor-autoregressioon väliste muutujatega (VARX, tuntud ka kui jagatud viitaegadega autoregressioon ADL). Välised muutujad on CSV-st võetud sisendid. Uuritakse nii samaaegse välise muutuja mõju kui ka viitajaga mõjusid."),
         p( DT::dataTableOutput("tulemused")
       )
       ) #end tabPanel "Viitajad ridades"
 ,
 tabPanel("Viitajadveergudes",
-         h3("Kui palju sisendi suurenemine ühe ühiku võrra väljundit muudab."),
+         h3("Kui palju sisendi suurenemine ühe ühiku võrra väljundit muudab
+          #  murdosana väljundi algsest väärtusest
+            ."),
          p(""),
          p("Tabeli iga rida näitab sisendi mõju väljundile samal ajavahemikul ja viitaegadega. Sulgudes on mõju standardhälbed - kui mõju on suurem kui kahekordne st.hälve, siis on mõju statistiliselt oluline. Väljund eelmisel ajavahemikul (t-1) on ka sisend praeguse ajavahemiku (t) väljundile, aga seda mõju tabelis pole.
-       Meetod: sesoonsus (kellaaja mõju) eemaldatakse väljunditest lineaarse regressiooniga. Seejärel tehakse väljundite peal 1. järku vektor-autoregressioon väliste muutujatega (VARX, tuntud ka kui jagatud viitaegadega autoregressioon ADL). Välised muutujad on CSV-st võetud sisendid. Uuritakse nii samaaegse välise muutuja mõju kui ka viitajaga mõjusid."),
+       Meetod: sesoonsus (kellaaja mõju) eemaldatakse väljunditest lineaarse regressiooniga. 
+#           Väljundist võetakse logaritm. 
+           Seejärel tehakse väljundite peal 1. järku vektor-autoregressioon väliste muutujatega (VARX, tuntud ka kui jagatud viitaegadega autoregressioon ADL). Välised muutujad on CSV-st võetud sisendid. Uuritakse nii samaaegse välise muutuja mõju kui ka viitajaga mõjusid."),
          p( DT::dataTableOutput("tulemused2")
          )
 ) #end tabPanel "Viitajad veergudes"
+,
+tabPanel("Viitaeg veerus, ainult olulised, log.",
+         h3("Kui palju sisendi suurenemine ühe ühiku võrra väljundit protsentides muudab. Standardhälve sulgudes. Väljundid peavad olema positiivsed, muidu tekib veateade, sest ei saa logaritmi võtta."),
+         p( DT::dataTableOutput("tulemusedOlulised")
+         )
+) #end tabPanel "Viitaeg veerus, ainult olulised, log."
+,
+tabPanel("Viitaeg veerus, ainult olulised, lin.",
+         h3("Kui palju sisendi suurenemine ühe ühiku võrra väljundit ühikutes muudab. Standardhälve sulgudes."),
+         p( DT::dataTableOutput("tulemusedOlulisedLin")
+         )
+) #end tabPanel "Viitaeg veerus, ainult olulised, lin."
       )# end tabsetPanel
     ) # end mainPanel
   )
@@ -144,13 +164,13 @@ xcolumns <- xcolend-xcolstart+1
 ycolumns <- input$ynum
 timecolstartp1 <- input$ynum +1 +1
 timecolend <- input$ynum +4
-totalcolumns <- length(colnames(data))
-xdf <- data[, xcolstart:xcolend,drop=F] 
+xdf <- data[, xcolstart:xcolend,drop=F]
 ydf <- data[,1:ycolumns,drop=F] 
 #timedummies <- data[,(ycolumns+1):(ycolumns+4),drop=F]
 timedummiesdrop1 <- data[,timecolstartp1:timecolend,drop=F]
 
 y <- ydf
+#ydf <- log(ydf) # Error NaN, Inf
 # Remove time of day effects (seasonality). 
 for (col in colnames(ydf)){
 #  y[,col] <- residuals(lm(ydf[,col] ~ timedummiesdrop1[[1:3]])) # invalid type 'list'. Another error Recursive indexing failed
@@ -172,8 +192,8 @@ clnms <- cbind(colnames(fit[["coef"]]), colnames(fit[["se.coef"]]))
 clnms2 <- cbind(colnames(fit[["coef"]]), colnames(fit[["se.coef"]]))
 clnms2[seq(1, ncolumns, 2)] <- clnms[1:ycolumns]
 clnms2[seq(2, ncolumns, 2)] <- paste0("st.hälve(", clnms[1:ycolumns], ")")
-fitvaljund[,seq(1, ncolumns, 2)] <- round(fit[["coef"]],3)
-fitvaljund[,seq(2, ncolumns, 2)] <- paste0("(",round(fit[["se.coef"]],3),")")
+fitvaljund[,seq(1, ncolumns, 2)] <- round(fit[["coef"]],rounding)
+fitvaljund[,seq(2, ncolumns, 2)] <- paste0("(",round(fit[["se.coef"]],rounding),")")
 colnames(fitvaljund) <- clnms2
 #fitvaljund[,seq(2, ncolumns, 2)] <- round(fit[["se.coef"]],3)
 #fitvaljund <- cbind(round(fit[["coef"]],rounding), paste0("(",round(fit[["se.coef"]],rounding),")")) # combine
@@ -183,7 +203,7 @@ colnames(fitvaljund) <- clnms2
 #colnames(fitvaljund)[seq(2, ncolumns, 2)] <- paste0("st.hälve(",colnames(fit[["coef"]])[seq(1, ncolumns, 2)],")")
 
 rownames(fitvaljund)[1] <- "keskmine"
-for (i in 1:length(colnames(y))){
+for (i in seq_along(colnames(y))){
   rownames(fitvaljund)[1+i] <- paste0(rownames(fitvaljund)[1+i],"_t-1")
 }
 for (j in 1:lags){
@@ -216,12 +236,11 @@ output$tulemused2 <- DT::renderDataTable({
   ycolumns <- input$ynum
   timecolstartp1 <- input$ynum +1 +1
   timecolend <- input$ynum +4
-  totalcolumns <- length(colnames(data))
   xdf <- data[, xcolstart:xcolend,drop=F] 
   ydf <- data[,1:ycolumns,drop=F] 
   timedummiesdrop1 <- data[,timecolstartp1:timecolend,drop=F]
   
-  y <- log(ydf)
+  y <- ydf
   # Remove time of day effects (seasonality). 
   for (col in colnames(ydf)){
     y[,col] <- residuals(lm(ydf[,col] ~ timedummiesdrop1[[1]] +timedummiesdrop1[[2]] +timedummiesdrop1[[3]]))
@@ -236,7 +255,6 @@ output$tulemused2 <- DT::renderDataTable({
   # Run the regression. 
   fit <- VARX(y, 1, xt = xdf, m=lags) 
   rounding <- 3
-  ncolumns <- 2*ycolumns
   # fitvaljund <- cbind(fit[["coef"]], fit[["se.coef"]])
   # clnms <- cbind(colnames(fit[["coef"]]), colnames(fit[["se.coef"]]))
   # clnms2 <- cbind(colnames(fit[["coef"]]), colnames(fit[["se.coef"]]))
@@ -282,6 +300,148 @@ output$tulemused2 <- DT::renderDataTable({
   DT::datatable(fitvaljund3text, options = list(lengthMenu = c(30, 60, 100), pageLength = xcolumns*ycolumns)) # , filter='top' # useful for numeric, not when parentheses around st.err. 
   
 }) # end output$tulemused2
+
+output$tulemusedOlulised <- DT::renderDataTable({
+  req(input$file)
+  data <- data.frame(read.csv(input$file$datapath,
+                              header = TRUE,
+                              sep = input$sep,
+                              quote = input$quote
+  )
+  )
+  for (col in colnames(data)){
+    data[,col] <- as.numeric(data[,col]) #NAs introduced by coercion
+  }
+  data <- data[!is.na(rowSums(data)), ]  # truncate to nonempty rows
+  
+  xcolstart <- input$ynum +4 +1
+  xcolend <- input$ynum +4 +input$xnum
+  xcolumns <- xcolend-xcolstart+1
+  ycolumns <- input$ynum
+  timecolstartp1 <- input$ynum +1 +1
+  timecolend <- input$ynum +4
+  xdf <- data[, xcolstart:xcolend,drop=F] 
+  ydf <- data[,1:ycolumns,drop=F] 
+  timedummiesdrop1 <- data[,timecolstartp1:timecolend,drop=F]
+  
+  y <- ydf
+  ydf <- log(ydf+0.001)
+  # Remove time of day effects (seasonality). 
+  for (col in colnames(ydf)){
+    y[,col] <- residuals(lm(ydf[,col] ~ timedummiesdrop1[[1]] +timedummiesdrop1[[2]] +timedummiesdrop1[[3]]))
+    # This is why have to fix the number of time dummies, not user-selected.
+  }
+  # How many lags of the inputs x to use in predicting the output y. 
+  lags <- min(8, floor(length(y[,1])/xcolumns/1.5))
+  lagnames <- "viit0"
+  for (i in 1:lags){
+    lagnames <- c(lagnames, paste("viit",i))
+  }
+  # Run the regression. 
+  fit <- VARX(y, 1, xt = xdf, m=lags) 
+  rounding <- 3
+  
+  fitvaljund3 <-matrix(0,nrow=xcolumns*ycolumns, ncol=lags+1)
+  fitvaljund3std <-matrix(0,nrow=xcolumns*ycolumns, ncol=lags+1)
+  fitvaljund3text <-matrix("",nrow=xcolumns*ycolumns, ncol=lags+1)
+  coefnumber <- length(fit[["coef"]][,1])
+  colnames(fitvaljund3) <- lagnames
+  colnames(fitvaljund3text) <- lagnames
+  rwnms <- rep(colnames(xdf),ycolumns)
+  for(i in 1:ycolumns){
+    rwnms[(1+(i-1)*xcolumns):(i*xcolumns)] <- paste0(colnames(xdf),"->",colnames(y)[i])
+  }
+  rownames(fitvaljund3) <- rwnms
+  rownames(fitvaljund3text) <- rwnms
+  # Rearrange coefficients so that the effects of xdf on the first output ydf[,1] are the top rows of the matrix, the effects of xdf on ydf[,2] the second block of rows, etc.
+  for (i in 1:ycolumns){
+    fitvaljund3[(1+(i-1)*xcolumns):(i*xcolumns),] <- matrix(round(fit[["coef"]][(1+ycolumns+1):coefnumber,i], rounding), ncol=lags+1)
+    fitvaljund3std[(1+(i-1)*xcolumns):(i*xcolumns),] <- matrix(round(fit[["se.coef"]][(1+ycolumns+1):coefnumber,i], rounding), ncol=lags+1)
+  }
+  for (i in 1:(xcolumns*ycolumns)){
+    for (j in 1:(lags+1)){
+      if (abs(fitvaljund3[i,j]) >1.96*fitvaljund3std[i,j]){
+      fitvaljund3text[i,j] <- paste0(100*fitvaljund3[i,j]," (",100*fitvaljund3std[i,j],")")
+      }
+      else 
+        fitvaljund3text[i,j] <- ""
+    }
+  }
+  
+  DT::datatable(fitvaljund3text, options = list(lengthMenu = c(30, 60, 100), pageLength = xcolumns*ycolumns)) # , filter='top' # useful for numeric, not when parentheses around st.err. 
+  #rm(list = c('ydf','xdf','y','fit')) # empty tab in app. 
+  
+}) # end output$tulemusedOlulised
+
+output$tulemusedOlulisedLin <- DT::renderDataTable({
+  req(input$file)
+  data <- data.frame(read.csv(input$file$datapath,
+                              header = TRUE,
+                              sep = input$sep,
+                              quote = input$quote
+  )
+  )
+  for (col in colnames(data)){
+    data[,col] <- as.numeric(data[,col]) #NAs introduced by coercion
+  }
+  data <- data[!is.na(rowSums(data)), ]  # truncate to nonempty rows
+  
+  xcolstart <- input$ynum +4 +1
+  xcolend <- input$ynum +4 +input$xnum
+  xcolumns <- xcolend-xcolstart+1
+  ycolumns <- input$ynum
+  timecolstartp1 <- input$ynum +1 +1
+  timecolend <- input$ynum +4
+  xdf <- data[, xcolstart:xcolend,drop=F] 
+  ydf <- data[,1:ycolumns,drop=F] 
+  timedummiesdrop1 <- data[,timecolstartp1:timecolend,drop=F]
+  
+  y <- ydf # initialise y, later overwritten.
+  # Remove time of day effects (seasonality). 
+  for (col in colnames(ydf)){
+    y[,col] <- residuals(lm(ydf[,col] ~ timedummiesdrop1[[1]] +timedummiesdrop1[[2]] +timedummiesdrop1[[3]]))
+    # This is why have to fix the number of time dummies, not user-selected.
+  }
+  # How many lags of the inputs x to use in predicting the output y. 
+  lags <- min(8, floor(length(y[,1])/xcolumns/1.5))
+  lagnames <- "viit0"
+  for (i in 1:lags){
+    lagnames <- c(lagnames, paste("viit",i))
+  }
+  # Run the regression. 
+  fit <- VARX(y, 1, xt = xdf, m=lags) 
+  rounding <- 3
+  
+  fitvaljund <-matrix(0,nrow=xcolumns*ycolumns, ncol=lags+1)
+  fitvaljundstd <-matrix(0,nrow=xcolumns*ycolumns, ncol=lags+1)
+  fitvaljundtext <-matrix("",nrow=xcolumns*ycolumns, ncol=lags+1)
+  coefnumber <- length(fit[["coef"]][,1])
+  colnames(fitvaljund) <- lagnames
+  colnames(fitvaljundtext) <- lagnames
+  rwnms <- rep(colnames(xdf),ycolumns)
+  for(i in 1:ycolumns){
+    rwnms[(1+(i-1)*xcolumns):(i*xcolumns)] <- paste0(colnames(xdf),"->",colnames(y)[i])
+  }
+  rownames(fitvaljund) <- rwnms
+  rownames(fitvaljundtext) <- rwnms
+  # Rearrange coefficients so that the effects of xdf on the first output ydf[,1] are the top rows of the matrix, the effects of xdf on ydf[,2] the second block of rows, etc.
+  for (i in 1:ycolumns){
+    fitvaljund[(1+(i-1)*xcolumns):(i*xcolumns),] <- matrix(round(fit[["coef"]][(1+ycolumns+1):coefnumber,i], rounding), ncol=lags+1)
+    fitvaljundstd[(1+(i-1)*xcolumns):(i*xcolumns),] <- matrix(round(fit[["se.coef"]][(1+ycolumns+1):coefnumber,i], rounding), ncol=lags+1)
+  }
+  for (i in 1:(xcolumns*ycolumns)){
+    for (j in 1:(lags+1)){
+      if (abs(fitvaljund[i,j]) >1.96*fitvaljundstd[i,j]){
+        fitvaljundtext[i,j] <- paste0(fitvaljund[i,j]," (",fitvaljundstd[i,j],")")
+      }
+      else 
+        fitvaljundtext[i,j] <- ""
+    }
+  }
+  
+  DT::datatable(fitvaljundtext, options = list(lengthMenu = c(30, 60, 100), pageLength = xcolumns*ycolumns)) 
+  
+}) # end output$tulemusedOlulisedLin
 
 } # end server
 
