@@ -92,7 +92,7 @@ tabPanel("Viitaeg veerus, ainult olulised, log.",
 ) #end tabPanel "Viitaeg veerus, ainult olulised, log."
 ,
 tabPanel("Viitaeg veerus, ainult olulised, lin.",
-         h3("Kui palju sisendi suurenemine ühe ühiku võrra väljundit ühikutes muudab. Standardhälve sulgudes."),
+         h3("Kui palju sisendi suurenemine ühe ühiku võrra väljundit muudab. Standardhälve sulgudes."),
          p( DT::dataTableOutput("tulemusedOlulisedLin")
          )
 ) #end tabPanel "Viitaeg veerus, ainult olulised, lin."
