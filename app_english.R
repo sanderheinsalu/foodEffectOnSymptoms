@@ -166,7 +166,7 @@ server <- function(input, output) {
       for (i in 1:xcolumns){
         rownames(fitvaljund)[1+ycolumns+j*xcolumns+i] <- paste0(rownames(fitvaljund)[1+ycolumns+j*xcolumns+i],"_t-",j)
       }
-    }
+    } # end for
 
     DT::datatable(fitvaljund, options = list(lengthMenu = c(30, 60, 100, 200, 300), pageLength = 200))
     
