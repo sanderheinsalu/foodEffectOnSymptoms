@@ -1,3 +1,5 @@
+#https://community.rstudio.com/t/shinyapps-io-cant-deploy-apps-built-with-r-4-0-0/63143/7
+#Error: Unhandled Exception: Child Task 876104247 failed: Error building image: Error building withr (2.4.1). R version 4.0.4 currently unavailable
 library(shiny)
 library(MTS)
 library(readODS)

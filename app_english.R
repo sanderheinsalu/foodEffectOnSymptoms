@@ -168,8 +168,6 @@ server <- function(input, output) {
       }
     }
 
-    # fitvaljund1 <- matrix(round(fit[["coef"]][4:147,1]/(2*fit[["se.coef"]][4:147,1]),1), ncol=4)
-
     DT::datatable(fitvaljund, options = list(lengthMenu = c(30, 60, 100, 200, 300), pageLength = 200))
     
   }) # end output$tulemused
